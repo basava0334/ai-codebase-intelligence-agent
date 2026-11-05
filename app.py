@@ -58,3 +58,19 @@ if folder:
 
             if matches == 0:
                 st.info("No matching lines found.")
+
+        st.subheader("Possible maintenance hotspots")
+        large_files = [
+            (file_path, lines)
+            for file_path, lines in file_lines.items()
+            if len(lines) >= 50
+        ]
+
+        if large_files:
+            for file_path, lines in large_files:
+                st.warning(
+                    f"{file_path.relative_to(project_path)} has "
+                    f"{len(lines)} lines. Consider reviewing this file."
+                )
+        else:
+            st.success("No large Python files found (50 lines or more).")
