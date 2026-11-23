@@ -69,6 +69,7 @@ if folder:
             st.success("No Python files with 50 or more lines were found.")
 
         st.subheader("Security review")
+
         try:
             findings = scan_python_files(project_path)
         except NotADirectoryError as error:
@@ -80,9 +81,12 @@ if folder:
 
             for finding in findings:
                 st.warning(
-                    f"{finding['file']}:{finding['line']} — "
-                    f"{finding['rule']}"
+                    f"{finding['severity']} — {finding['rule']}"
                 )
+                st.write(
+                    f"Location: {finding['file']}:{finding['line']}"
+                )
+                st.write(finding["explanation"])
                 st.code(finding["code"], language="python")
         else:
             st.success("No matches for the current security rules.")
