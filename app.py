@@ -8,7 +8,7 @@ from pathlib import Path, PurePosixPath
 
 import streamlit as st
 
-from security_scanner import scan_python_files
+from security_scanner import scan_code_files
 
 
 MAX_ZIP_SIZE = 50 * 1024 * 1024
@@ -187,33 +187,27 @@ def show_analysis(project_path):
     else:
         st.success("No code files with 50 or more lines were found.")
 
-    st.subheader("Python security review")
+    st.subheader("Security review")
 
-    python_files = [
-        file_path
-        for file_path in file_lines
-        if file_path.suffix.lower() == ".py"
-    ]
+    try:
+        findings = scan_code_files(project_path)
+    except NotADirectoryError as error:
+        st.error(str(error))
+        findings = []
 
-    if not python_files:
-        st.info("The current security rules check Python files only.")
+    if findings:
+        st.write(f"Possible findings: {len(findings)}")
+
+        for finding in findings:
+            st.warning(f"{finding['severity']} — {finding['rule']}")
+            st.write(
+                f"Location: {finding['file']}:{finding['line']} "
+                f"({finding['language']})"
+            )
+            st.write(finding["explanation"])
+            st.code(finding["code"])
     else:
-        try:
-            findings = scan_python_files(project_path)
-        except NotADirectoryError as error:
-            st.error(str(error))
-            findings = []
-
-        if findings:
-            st.write(f"Possible findings: {len(findings)}")
-
-            for finding in findings:
-                st.warning(f"{finding['severity']} — {finding['rule']}")
-                st.write(f"Location: {finding['file']}:{finding['line']}")
-                st.write(finding["explanation"])
-                st.code(finding["code"], language="python")
-        else:
-            st.success("No matches for the current Python security rules.")
+        st.success("No matches for the current security rules.")
 
     st.caption(
         "Security warnings are pattern-based clues for human review. "
@@ -273,7 +267,7 @@ st.set_page_config(page_title="AI Codebase Intelligence Agent")
 st.title("AI Codebase Intelligence Agent")
 st.write(
     "Upload a project ZIP to view code statistics, search supported "
-    "languages, review Python security risks, and ask the local AI model."
+    "languages, review possible security risks, and ask the local AI model."
 )
 
 uploaded_zip = st.file_uploader(
